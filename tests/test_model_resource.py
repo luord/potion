@@ -3,6 +3,19 @@ from flask_potion import fields, Api, Resource, ModelResource
 from tests import BaseTestCase
 
 
+def TestResource(res_name, sort=None):
+    class NewResource(ModelResource):
+        class Schema:
+            name = fields.String()
+            secret = fields.String(io="c")
+            slug = fields.String(io="cr")
+        class Meta:
+            name = res_name
+            sort_attribute = sort
+
+    return NewResource
+
+
 class ModelResourceTestCase(BaseTestCase):
 
     def setUp(self):
@@ -10,16 +23,7 @@ class ModelResourceTestCase(BaseTestCase):
         self.api = Api(self.app, default_manager=MemoryManager)
 
     def test_schema_io(self):
-
-        class FooResource(ModelResource):
-            class Schema:
-                name = fields.String()
-                secret = fields.String(io="c")
-                slug = fields.String(io="cr")
-
-            class Meta:
-                name = "foo"
-
+        FooResource = TestResource("foo")
         self.api.add_resource(FooResource)
 
         response = self.client.post("/foo", data={
@@ -67,3 +71,45 @@ class ModelResourceTestCase(BaseTestCase):
             "slug": "foo",
             "secret": "mystery"
         }, FooResource.manager.items[1])
+
+
+    def test_sort_attribute(self):
+        DescResource = TestResource("desc", sort=("name", True))
+        AscResource = TestResource("asc", sort="name")
+        UnsortedResource = TestResource("unsorted")
+
+        self.api.add_resource(DescResource)
+        self.api.add_resource(AscResource)
+        self.api.add_resource(UnsortedResource)
+
+        first_data = {
+            "name": "Foo",
+            "secret": "mystery",
+            "slug": "foo"
+        }
+        second_data = {
+            "name": "Bar",
+            "secret": "mystery",
+            "slug": "bar"
+        }
+
+        self.client.post("/asc", data=first_data)
+        self.client.post("/asc", data=second_data)
+        self.client.post("/desc", data=first_data)
+        self.client.post("/desc", data=second_data)
+        self.client.post("/unsorted", data=first_data)
+        self.client.post("/unsorted", data=second_data)
+
+        response = self.client.get("/desc").json
+
+        self.assertEqual(response[0]['name'], "Foo")
+        self.assertEqual(response[1]['name'], "Bar")
+
+        response = self.client.get("/asc").json
+        self.assertEqual(response[0]['name'], "Bar")
+        self.assertEqual(response[1]['name'], "Foo")
+
+        response = self.client.get("/unsorted").json
+
+        self.assertEqual(response[0]['name'], "Foo")
+        self.assertEqual(response[1]['name'], "Bar")

@@ -212,11 +212,37 @@ class ModelResourceMeta(ResourceMeta):
             if 'model' in changes or 'model' in meta and 'manager' in changes:
                 if meta.manager is not None:
                     class_.manager = meta.manager(class_, meta.model)
+
+        if meta.get('sort_attribute'):
+            try:
+                field, reverse = meta.sort_attribute
+            except ValueError:
+                field, reverse = meta.sort_attribute, False
+
+            if field not in class_.schema.fields:
+                meta.sort_attribute = None
+            else:
+                meta.sort_attribute = (
+                    (class_.schema.fields[field], field, reverse),
+                )
+
         return class_
 
 
 class ModelResource(six.with_metaclass(ModelResourceMeta, Resource)):
     """
+    :class:`Meta` class attributes:
+
+    =====================  ==============================  ==============================================================================
+    Attribute name         Default                         Description
+    =====================  ==============================  ==============================================================================
+    manager                ``Api.default_manager``         A data store connection is maintained by a :class:`manager.Manager` instance.
+                                                           Managers are configured through attributes in ``Meta``. Most managers expect
+                                                           a *model* to be defined under ``Meta.model``.
+    sort_attribute         None                            The field used to sort the list in the `instances` endpoint. Can be the
+                                                           field name as ``string`` or a ``tuple`` with the field name and a boolean
+                                                           for ``reverse`` (defaults to ``False``).
+    =====================  ==============================  ==============================================================================
 
     .. method:: create
 
@@ -261,8 +287,9 @@ class ModelResource(six.with_metaclass(ModelResourceMeta, Resource)):
     manager = None
 
     @Route.GET('', rel="instances")
-    def instances(self, **kwargs):
-        return self.manager.paginated_instances(**kwargs)
+    def instances(self, sort=None, **kwargs):
+        sort = sort or self.meta.sort_attribute
+        return self.manager.paginated_instances(sort=sort, **kwargs)
 
     # TODO custom schema (Instances/Instances) that contains the necessary schema.
     instances.request_schema = instances.response_schema = Instances()  # TODO NOTE Instances('self') for filter, etc. schema
