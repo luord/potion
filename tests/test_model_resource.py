@@ -72,7 +72,6 @@ class ModelResourceTestCase(BaseTestCase):
             "secret": "mystery"
         }, FooResource.manager.items[1])
 
-
     def test_sort_attribute(self):
         DescResource = TestResource("desc", sort=("name", True))
         AscResource = TestResource("asc", sort="name")
@@ -113,3 +112,21 @@ class ModelResourceTestCase(BaseTestCase):
 
         self.assertEqual(response[0]['name'], "Foo")
         self.assertEqual(response[1]['name'], "Bar")
+
+    def test_inline_schema(self):
+        class FooResource(ModelResource):
+            class Meta:
+                name = "foo"
+
+
+        class BarResource(ModelResource):
+            class Meta:
+                name = "bar"
+
+        self.api.add_resource(FooResource)
+        self.api.add_resource(BarResource)
+
+        foo = fields.Inline(FooResource)
+        foo.bind(BarResource)
+
+        self.assertEqual({'$ref': '/foo/schema'}, foo.response)
