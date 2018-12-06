@@ -3,7 +3,7 @@ from flask_potion import fields, Api, Resource, ModelResource
 from tests import BaseTestCase
 
 
-def TestResource(res_name, sort=None):
+def DummyResource(res_name, sort=None):
     class NewResource(ModelResource):
         class Schema:
             name = fields.String()
@@ -23,7 +23,7 @@ class ModelResourceTestCase(BaseTestCase):
         self.api = Api(self.app, default_manager=MemoryManager)
 
     def test_schema_io(self):
-        FooResource = TestResource("foo")
+        FooResource = DummyResource("foo")
         self.api.add_resource(FooResource)
 
         response = self.client.post("/foo", data={
@@ -73,9 +73,9 @@ class ModelResourceTestCase(BaseTestCase):
         }, FooResource.manager.items[1])
 
     def test_sort_attribute(self):
-        DescResource = TestResource("desc", sort=("name", True))
-        AscResource = TestResource("asc", sort="name")
-        UnsortedResource = TestResource("unsorted")
+        DescResource = DummyResource("desc", sort=("name", True))
+        AscResource = DummyResource("asc", sort="name")
+        UnsortedResource = DummyResource("unsorted")
 
         self.api.add_resource(DescResource)
         self.api.add_resource(AscResource)
