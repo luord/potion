@@ -229,18 +229,6 @@ class ModelResourceMeta(ResourceMeta):
 
 class ModelResource(six.with_metaclass(ModelResourceMeta, Resource)):
     """
-    :class:`Meta` class attributes:
-
-    =====================  ==============================  ==============================================================================
-    Attribute name         Default                         Description
-    =====================  ==============================  ==============================================================================
-    manager                ``Api.default_manager``         A data store connection is maintained by a :class:`manager.Manager` instance.
-                                                           Managers are configured through attributes in ``Meta``. Most managers expect
-                                                           a *model* to be defined under ``Meta.model``.
-    sort_attribute         None                            The field used to sort the list in the `instances` endpoint. Can be the
-                                                           field name as ``string`` or a ``tuple`` with the field name and a boolean
-                                                           for ``reverse`` (defaults to ``False``).
-    =====================  ==============================  ==============================================================================
 
     .. method:: create
 
