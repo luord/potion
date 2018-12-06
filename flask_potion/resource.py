@@ -106,7 +106,8 @@ class Resource(six.with_metaclass(ResourceMeta, object)):
     exclude_routes         ``()``                          A list of strings; any routes --- including inherited routes --- whose ``Route.relation``
                                                            match one of these string is omitted from the resource.
     route_decorators       ``{}``                          A dictionary of decorators to apply to routes in the resource.
-                                                           The keys must match the ``Route.relation`` attribute.
+                                                           The keys must match the ``Route.relation`` attribute. The values can be
+                                                           decorators or lists of decorators.
     exclude_fields         ``()``                          A list of fields that should not be imported from the `model`.
     required_fields        ``()``                          Fields that are automatically imported from the model are automatically
                                                            required if their columns are not `nullable` and do not have a `default`.

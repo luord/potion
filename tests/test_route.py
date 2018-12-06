@@ -260,17 +260,23 @@ class ResourceTestCase(BaseTestCase):
             def unauthorize_decorator(self):
                 return 'normal'
 
+            @Route.GET
+            def multiple_decorators(self):
+                return 'normal'
+
             class Meta:
                 name = 'foo'
                 title = 'Foo bar'
                 route_decorators = {
                     'readSimpleDecorator': denormalize,
-                    'readUnauthorizeDecorator': unauthorize
+                    'readUnauthorizeDecorator': unauthorize,
+                    'readMultipleDecorators': [denormalize] * 2
                 }
 
         self.assertEqual('normal', FooResource().no_decorator())
         self.assertEqual('normal', FooResource().simple_decorator())
         self.assertEqual('normal', FooResource().unauthorize_decorator())
+        self.assertEqual('normal', FooResource().multiple_decorators())
 
         api = Api(self.app)
         api.add_resource(FooResource)
@@ -280,6 +286,9 @@ class ResourceTestCase(BaseTestCase):
 
         response = self.client.get("/foo/simple-decorator")
         self.assertEqual('not normal', response.json)
+
+        response = self.client.get("/foo/multiple-decorators")
+        self.assertEqual('not not normal', response.json)
 
         response = self.client.get("/foo/unauthorize-decorator")
         self.assert401(response)

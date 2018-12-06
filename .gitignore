@@ -35,7 +35,8 @@ nosetests.xml
 .project
 .pydevproject
 
-# PyCharm
+# Editors
 .idea
+.vscode
 
 *.db

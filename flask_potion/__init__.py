@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import inspect
 import operator
-from functools import partial
+from functools import partial, reduce
 from flask import current_app, make_response, json, Response, request
 from six import wraps
 from werkzeug.exceptions import HTTPException
@@ -180,15 +180,19 @@ class Api(object):
 
         return OrderedDict(schema), 200, {'Content-Type': 'application/schema+json'}
 
-    def add_route(self, route, resource, endpoint=None, decorator=None):
+    def add_route(self, route, resource, endpoint=None, decorators=None):
         endpoint = endpoint or '_'.join((resource.meta.name, route.relation))
         methods = [route.method]
         rule = route.rule_factory(resource)
 
         view_func = route.view_factory(endpoint, resource)
 
-        if decorator:
-            view_func = decorator(view_func)
+        if not decorators:
+            pass
+        elif callable(decorators):
+            view_func = decorators(view_func)
+        else:
+            view_func = reduce(lambda f, dec: dec(f), decorators, view_func)
 
         if self.app and not self.blueprint:
             self._register_view(self.app, rule, view_func, endpoint, methods, route.relation)
@@ -222,8 +226,8 @@ class Api(object):
         resource.route_prefix = ''.join((self.prefix, '/', resource.meta.name))
 
         for route in resource.routes.values():
-            route_decorator = resource.meta.route_decorators.get(route.relation, None)
-            self.add_route(route, resource, decorator=route_decorator)
+            route_decorators = resource.meta.route_decorators.get(route.relation, None)
+            self.add_route(route, resource, decorators=route_decorators)
 
         for name, rset in inspect.getmembers(resource, lambda m: isinstance(m, RouteSet)):
             if rset.attribute is None:
