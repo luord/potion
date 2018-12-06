@@ -548,6 +548,8 @@ class DateTimeString(Raw):
         super(DateTimeString, self).__init__({"type": "string", "format": "date-time"}, **kwargs)
 
     def formatter(self, value):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
         return value.isoformat()
 
     def converter(self, value):
@@ -717,7 +719,7 @@ class Inline(Raw, ResourceBound):
                     return {"$ref": "#"}
                 return {"$ref": self.target.routes["describedBy"].rule_factory(self.target)}
 
-            if not not self.patchable:
+            if not self.patchable:
                 return _response_schema()
             else:
                 return _response_schema(), self.target.schema.patchable.update

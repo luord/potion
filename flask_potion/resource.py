@@ -213,18 +213,9 @@ class ModelResourceMeta(ResourceMeta):
                 if meta.manager is not None:
                     class_.manager = meta.manager(class_, meta.model)
 
-        if meta.get('sort_attribute'):
-            try:
-                field, reverse = meta.sort_attribute
-            except ValueError:
-                field, reverse = meta.sort_attribute, False
-
-            if field not in class_.schema.fields:
-                meta.sort_attribute = None
-            else:
-                meta.sort_attribute = (
-                    (class_.schema.fields[field], field, reverse),
-                )
+        sort_attribute = meta.get('sort_attribute')
+        if sort_attribute is not None and isinstance(sort_attribute, str):
+            meta.sort_attribute = sort_attribute, False
 
         return class_
 
