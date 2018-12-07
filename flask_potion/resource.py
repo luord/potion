@@ -219,7 +219,7 @@ class ModelResourceMeta(ResourceMeta):
         if sort_attribute and sort_attribute[0] in class_.schema.fields:
             field, reverse = sort_attribute
             meta.sort_attribute = (
-                (class_.schema.fields[field], field, reverse)
+                (class_.schema.fields[field], field, reverse),
             )
         else:
             meta.sort_attribute = None
